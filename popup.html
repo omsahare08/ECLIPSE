@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Eclipse</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0b0b0d;
+      --surface:   #111114;
+      --surface2:  #161619;
+      --border:    #1e1e24;
+      --border-hi: #2c2c34;
+      --text:      #d8d6d0;
+      --muted:     #46454f;
+      --muted2:    #2c2b34;
+      --active:    #c9a96e;
+      --active-a:  rgba(201,169,110,0.10);
+      --active-b:  rgba(201,169,110,0.28);
+      --blue:      #5b9cf6;
+      --blue-a:    rgba(91,156,246,0.10);
+      --blue-b:    rgba(91,156,246,0.28);
+    }
+
+    body {
+      width: 310px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 12px;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    /* ── HEADER ───────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand { display: flex; align-items: center; gap: 8px; }
+
+    .brand-name {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .detect-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--muted2);
+      border: 1px solid var(--border);
+      transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+      flex-shrink: 0;
+    }
+    .detect-dot.is-on       { background: var(--active); border-color: var(--active-b); box-shadow: 0 0 5px rgba(201,169,110,0.5); }
+    .detect-dot.is-detected { background: var(--blue);   border-color: var(--blue-b);   box-shadow: 0 0 5px rgba(91,156,246,0.5); }
+
+    .site-host {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      max-width: 148px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── TABS ─────────────────────────────────── */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      height: 36px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.15s;
+    }
+
+    .tab-btn::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 24%; right: 24%;
+      height: 1px;
+      background: var(--active);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { opacity: 1; }
+
+    /* ── PANELS ───────────────────────────────── */
+    .panel { display: none; padding: 14px 16px 16px; }
+    .panel.active { display: block; }
+
+    /* ── TOGGLE ROW ───────────────────────────── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 13px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 13px;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s;
+    }
+
+    .toggle-row:hover   { border-color: var(--border-hi); }
+    .toggle-row.on      { border-color: var(--active-b); background: var(--active-a); }
+    .toggle-row.auto-on { border-color: var(--blue-b);   background: var(--blue-a); }
+
+    .tr-label { display: flex; flex-direction: column; gap: 3px; }
+
+    .tr-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .tr-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      transition: color 0.18s;
+    }
+
+    .toggle-row.on .tr-sub      { color: var(--active); }
+    .toggle-row.auto-on .tr-sub { color: var(--blue); }
+    .toggle-row.on .status-off  { display: none; }
+    .toggle-row:not(.on) .status-on { display: none; }
+
+    /* switch */
+    .sw {
+      width: 36px; height: 20px;
+      background: var(--muted2);
+      border-radius: 10px;
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.22s;
+    }
+    .sw::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: transform 0.22s cubic-bezier(.4,0,.2,1), background 0.22s;
+    }
+    .toggle-row.on .sw { background: rgba(201,169,110,0.2); }
+    .toggle-row.on .sw::after { transform: translateX(16px); background: var(--active); }
+    .toggle-row.auto-on .sw { background: rgba(91,156,246,0.15); }
+    .toggle-row.auto-on .sw::after { background: var(--blue); }
+
+    /* ── SECTION LABEL ────────────────────────── */
+    .sec {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    /* ── MODE GRID 3×2 ────────────────────────── */
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      margin-bottom: 14px;
+    }
+
+    .mode-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 6px;
+      color: var(--muted);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      line-height: 1.3;
+      transition: border-color 0.14s, color 0.14s, background 0.14s;
+    }
+
+    .mode-btn:hover { border-color: var(--border-hi); color: #888; }
+    .mode-btn.active { border-color: var(--active-b); background: var(--active-a); color: var(--active); }
+
+    .mode-name { display: block; font-size: 10px; font-weight: 500; }
+    .mode-desc { display: block; font-size: 8.5px; font-family: 'IBM Plex Mono', monospace; margin-top: 2px; opacity: 0.5; }
+
+    /* ── SLIDER ───────────────────────────────── */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sl-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      width: 28px;
+      flex-shrink: 0;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      border-radius: 1px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--muted);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+      transition: background 0.15s, transform 0.12s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: var(--active);
+      transform: scale(1.2);
+    }
+
+    .sl-val {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      width: 28px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── FONT GRID 2×5 ────────────────────────── */
+    .font-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+
+    .font-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 11px;
+      cursor: pointer;
+      transition: border-color 0.14s, background 0.14s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .font-card:hover { border-color: var(--border-hi); }
+    .font-card.active { border-color: var(--active-b); background: var(--active-a); }
+
+    /* check mark */
+    .fc-check {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--active);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .font-card.active .fc-check { opacity: 1; transform: scale(1); }
+
+    /* Big Aa preview */
+    .fc-preview {
+      font-size: 22px;
+      line-height: 1;
+      color: var(--text);
+      margin-bottom: 6px;
+      /* font-family set inline per card */
+    }
+
+    .font-card.active .fc-preview { color: var(--active); }
+
+    .fc-name {
+      font-size: 10.5px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fc-desc {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── FOOTER ───────────────────────────────── */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-copy {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8.5px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: border-color 0.3s, color 0.3s;
+    }
+
+    .status-pill.active-state { border-color: var(--active-b); color: var(--active); }
+
+    .pill-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+      transition: box-shadow 0.3s;
+    }
+    .status-pill.active-state .pill-dot { box-shadow: 0 0 4px rgba(201,169,110,0.7); }
+
+    /* ── ANIMATION ────────────────────────────── */
+    .header, .tabs, .panel, .footer {
+      animation: up 0.16s ease both;
+    }
+    .tabs   { animation-delay: 0.02s; }
+    .panel  { animation-delay: 0.04s; }
+    .footer { animation-delay: 0.06s; }
+
+    @keyframes up {
+      from { opacity: 0; transform: translateY(3px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="7.5" stroke="#1e1e24"/>
+        <path d="M8 1.5C8 1.5 4.5 4.2 4.5 8C4.5 11.8 8 14.5 8 14.5C5.5 13.8 2.5 11.2 2.5 8C2.5 4.8 5.5 2.2 8 1.5Z" fill="#c9a96e" opacity="0.9"/>
+        <circle cx="11.5" cy="4.5" r="0.85" fill="#c9a96e" opacity="0.4"/>
+        <circle cx="13" cy="7.5" r="0.6" fill="#c9a96e" opacity="0.22"/>
+      </svg>
+      <span class="brand-name">Eclipse</span>
+    </div>
+    <div class="header-right">
+      <div class="detect-dot" id="detectDot"></div>
+      <span class="site-host" id="siteHost">—</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-panel="dark">Dark Mode</button>
+    <button class="tab-btn" data-panel="type">Typography</button>
+  </div>
+
+  <!-- Panel: Dark Mode -->
+  <div class="panel active" id="panel-dark">
+
+    <div class="toggle-row" id="darkToggle">
+      <div class="tr-label">
+        <span class="tr-title" id="darkTitle">Dark Mode</span>
+        <span class="tr-sub" id="darkStatus">Light</span>
+      </div>
+      <div class="sw"></div>
+    </div>
+
+    <div class="sec">Mode</div>
+    <div class="mode-grid" id="darkModeGrid">
+      <button class="mode-btn active" data-mode="smart">
+        <span class="mode-name">Smart</span>
+        <span class="mode-desc">Auto adapt</span>
+      </button>
+      <button class="mode-btn" data-mode="dim">
+        <span class="mode-name">Dim</span>
+        <span class="mode-desc">Low light</span>
+      </button>
+      <button class="mode-btn" data-mode="midnight">
+        <span class="mode-name">Midnight</span>
+        <span class="mode-desc">Deep dark</span>
+      </button>
+      <button class="mode-btn" data-mode="reading">
+        <span class="mode-name">Reading</span>
+        <span class="mode-desc">Eye care</span>
+      </button>
+      <button class="mode-btn" data-mode="contrast">
+        <span class="mode-name">Contrast</span>
+        <span class="mode-desc">High vis</span>
+      </button>
+      <button class="mode-btn" data-mode="mono">
+        <span class="mode-name">Mono</span>
+        <span class="mode-desc">Grayscale</span>
+      </button>
+    </div>
+
+    <div class="sec">Intensity</div>
+    <div class="slider-row">
+      <span class="sl-label">Level</span>
+      <input type="range" id="darkSlider" min="40" max="100" value="85"/>
+      <span class="sl-val" id="darkSliderVal">85%</span>
+    </div>
+
+  </div>
+
+  <!-- Panel: Typography -->
+  <div class="panel" id="panel-type">
+
+    <div class="toggle-row" id="fontToggle">
+      <div class="tr-label">
+        <span class="tr-title">Font Override</span>
+        <span class="tr-sub" id="fontStatus">Disabled</span>
+      </div>
+      <div class="sw"></div>
+    </div>
+
+    <div class="sec">Select Font</div>
+    <div class="font-grid" id="fontGrid">
+      <!-- cards built by JS -->
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span class="footer-copy">Eclipse v3</span>
+    <div class="status-pill" id="statusPill">
+      <div class="pill-dot"></div>
+      <span id="pillText">Inactive</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
