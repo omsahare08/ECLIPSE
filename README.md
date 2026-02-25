@@ -30,6 +30,14 @@ Toggle dark mode on any website with 6 filter modes and adjustable intensity. Ec
 ### Typography Override
 Replace a website's fonts and color scheme with a complete curated theme. Each theme includes a paired font, background color, text color, link color, heading color, and text selection highlight.
 
+| Theme | Font | Style |
+|---|---|---|
+| Editorial | Playfair Display | Classic serif, cream background |
+| Technical | JetBrains Mono | Monospace, dark code-editor palette |
+| Minimal | DM Sans | Clean sans-serif, pure white |
+| Warm | Lora | Warm serif, parchment tones |
+| Futuristic | Rajdhani | Sci-fi display, deep blue + cyan |
+| Humanist | Crimson Pro | Literary serif, aged paper palette |
 
 Use the **Scale** slider to increase or decrease the base font size independently of the theme.
 
